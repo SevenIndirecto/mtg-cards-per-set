@@ -14,6 +14,15 @@
             v-model="showAsImages"
             label="Show as images"
           ></v-switch>
+          <v-spacer/>
+          <v-btn
+            dark
+            small
+            color="blue darken-4"
+            @click="share"
+          >
+            <v-icon small>mdi-share-variant</v-icon>
+          </v-btn>
         </v-card-actions>
         <v-card-title class="headline">
           <template v-if="activeSet">{{ activeSet.name }} ({{ activeSet.releaseDate }})</template>
@@ -77,6 +86,12 @@
         </v-card-text>
       </v-card>
     </v-col>
+    <v-snackbar
+      v-model="snackbarShow"
+      :timeout="snackbarTimeout"
+    >
+      {{ snackbarText }}
+    </v-snackbar>
   </v-row>
 </template>
 
@@ -91,6 +106,9 @@ export default {
       activeSetLabel: null,
       cardsInSet: [],
       showAsImages: true,
+      snackbarShow: false,
+      snackbarTimeout: 3000,
+      snackbarText: 'Copied to clipboard',
     }
   },
   computed: {
@@ -115,6 +133,18 @@ export default {
       }
     }
   },
+  created() {
+    const setFromQuery = this.$route?.query?.set;
+    if (!setFromQuery) {
+      return;
+    }
+    for (let [label, set] of Object.entries(this.sets)) {
+      if (set.code === setFromQuery) {
+        this.activeSetLabel = label;
+        break;
+      }
+    }
+  },
   methods: {
     async onSetSelected() {
       let cards = [];
@@ -127,7 +157,23 @@ export default {
     },
     scryfallImageUrl(id) {
       return `https://c1.scryfall.com/file/scryfall-cards/large/front/${id[0]}/${id[1]}/${id}.jpg`;
-    }
+    },
+    share() {
+      let url = window.location.origin;
+      if (this.activeSet) {
+        url += `?set=${this.activeSet.code}`;
+      }
+      if (navigator?.share) {
+        navigator.share({
+          title: `MTG Cards per Set${this.activeSetLabel ? ` (${this.activeSet.code})` : ''}`,
+          text: 'MTG Cards per Set',
+          url,
+        });
+      } else {
+        navigator.clipboard.writeText(url);
+        this.snackbarShow = true;
+      }
+    },
   },
 }
 </script>
