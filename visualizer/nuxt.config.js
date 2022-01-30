@@ -6,8 +6,8 @@ export default {
 
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
-    titleTemplate: 'Format Staples Insights',
-    title: 'Format Staples Insights',
+    titleTemplate: 'Format Staples Insight',
+    title: 'Format Staples Insight',
     htmlAttrs: {
       lang: 'en'
     },

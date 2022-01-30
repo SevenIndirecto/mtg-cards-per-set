@@ -1,14 +1,13 @@
 <template>
   <v-row justify="center" align="center">
     <v-col cols="12">
-      <v-card class="py-4 d-flex">
+      <v-card color="grey darken-3">
         <v-card-text>
-        Alpha: Modern Format only
-        <br> Timespan: 2021-12-01 - 2022-01-31
-        <br> Source: MTG Goldfish
+          <strong>Version</strong>: 0.1.0 (Modern Format only)
+          <br><strong>Timespan</strong>: 2021-12-01 - 2022-01-31
+          <br><strong>Source</strong>: MTG Goldfish
         </v-card-text>
-      </v-card>
-      <v-card>
+        <v-spacer/>
         <v-card-actions>
           <v-switch
             v-model="showAsImages"

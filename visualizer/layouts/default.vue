@@ -6,11 +6,12 @@
       app
       clipped
       clipped-left
+      disable-resize-watcher
     >
       <v-list>
         <v-list-item
-          v-for="(item, i) in items"
-          :key="i"
+          v-for="item in items"
+          :key="item.to"
           :to="item.to"
           router
           exact
@@ -28,6 +29,7 @@
       clipped-left
       fixed
       app
+      color="blue darken-4"
     >
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
       <v-toolbar-title v-text="title" />
@@ -59,7 +61,7 @@ export default {
           to: '/'
         },
       ],
-      title: 'Cards played per set'
+      title: 'Set staples'
     }
   }
 }
