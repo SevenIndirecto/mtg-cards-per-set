@@ -51,7 +51,6 @@
                 <v-img
                   :src="scryfallImageUrl(card.scryfallId)"
                   :lazy-src="scryfallImageUrl(card.scryfallId)"
-                  class="grey lighten-2"
                 >
                   <template v-slot:placeholder>
                     <v-row
@@ -181,5 +180,14 @@ export default {
 .card-count {
   font-size: 1rem;
   margin: 0 auto;
+}
+
+.v-image {
+  box-shadow:
+    0 0 0 3px #fff,
+    0 0 0 4px #ccc,
+    0 0 0 5px #888,
+    0 0 0 6px #444;
+  border-radius: 4px;
 }
 </style>
