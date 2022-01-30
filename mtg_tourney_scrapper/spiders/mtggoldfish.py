@@ -1,29 +1,43 @@
+import datetime
+
 import scrapy
 
 
-# TODO: Clear output file, do not append
 class MtggoldfishSpider(scrapy.Spider):
     name = "mtggoldfish"
     base_url = "https://mtggoldfish.com"
-    # TODO: dynamic format?
-    format = "modern"
     ignored_cards = {"plains", "island", "swamp", "mountain", "forest"}
 
-    def __init__(self, *args, **kwargs):
-        # TODO: Dynamic date
-        url = "{base_url}/tournament_searches/create?tournament_search[format]={format}&tournament_search[date_range]=12/01/2021+-+01/31/2022&commit=Search".format(
+    def __init__(self, format="modern", **kwargs):
+        self.mtg_format = format
+        self.all_set_data_file = kwargs.get('alldata_json', 'alldata.json')
+        self.out_dir = kwargs.get('out_dir', 'visualizer/output_data')
+
+        now = datetime.datetime.now()
+        date_from = kwargs.get("date_from")
+        date_to = kwargs.get("date_to")
+        self.date_from = (
+            datetime.datetime.fromisoformat(date_from)
+            if date_from
+            else (now - datetime.timedelta(days=60))
+        )
+        self.date_to = datetime.datetime.fromisoformat(date_to) if date_to else now
+
+        url = "{base_url}/tournament_searches/create?tournament_search[format]={format}&tournament_search[date_range]={date_from}+-+{date_to}&commit=Search".format(
             base_url=self.base_url,
-            format=self.format,
+            format=self.mtg_format,
+            date_to=self.date_to.strftime("%m/%d/%Y"),
+            date_from=self.date_from.strftime("%m/%d/%Y"),
         )
         self.start_urls = [url]
-        super(MtggoldfishSpider, self).__init__(*args, **kwargs)
+        super(MtggoldfishSpider, self).__init__(**kwargs)
 
     def parse(self, response):
         # Tournaments
         self.logger.info("Parsing tourney list")
         tourney_urls = response.css("table.table-striped tr td a::attr(href)").getall()
         for relative_url in tourney_urls:
-            absolute_url = "{base_url}/{relative_url}".format(
+            absolute_url = "{base_url}{relative_url}".format(
                 base_url=self.base_url, relative_url=relative_url
             )
             yield scrapy.Request(absolute_url, callback=self.parse_tourney)
@@ -32,7 +46,11 @@ class MtggoldfishSpider(scrapy.Spider):
         next_page = response.css('a[rel="next"]::attr(href)').get()
         if next_page:
             self.logger.info("Yield new page")
-            yield scrapy.Request("{base_url}{next_page}".format(base_url=self.base_url, next_page=next_page))
+            yield scrapy.Request(
+                "{base_url}{next_page}".format(
+                    base_url=self.base_url, next_page=next_page
+                )
+            )
 
     def parse_tourney(self, response):
         self.logger.info("Parsing tourney")

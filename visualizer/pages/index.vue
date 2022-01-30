@@ -3,7 +3,7 @@
     <v-col cols="12">
       <v-card color="grey darken-3">
         <v-card-text>
-          <strong>Version</strong>: 0.1.0 (Modern Format only)
+          <strong>Version</strong>: 0.1.1 (Modern & Legacy Formats only)
           <br><strong>Timespan</strong>: 2021-12-01 - 2022-01-31
           <br><strong>Source</strong>: MTG Goldfish
         </v-card-text>
@@ -27,6 +27,12 @@
           <template v-if="activeSet">{{ activeSet.name }} ({{ activeSet.releaseDate }})</template>
         </v-card-title>
         <v-card-text>
+          <v-select
+            v-model="activeFormat"
+            :items="formats"
+            rounded
+            solo
+          ></v-select>
           <v-autocomplete
             v-model="activeSetLabel"
             :items="setLabels"
@@ -34,7 +40,6 @@
             rounded
             solo
             auto-select-first
-            @select="onSetSelected"
           ></v-autocomplete>
 
           <v-row v-if="showAsImages">
@@ -102,6 +107,11 @@ export default {
     return {
       key: '',
       activeSetLabel: null,
+      activeFormat: 'modern',
+      formats: [
+        {text: 'Modern', value: 'modern'},
+        {text: 'Legacy', value: 'legacy'},
+      ],
       cardsInSet: [],
       showAsImages: true,
       snackbarShow: false,
@@ -127,11 +137,19 @@ export default {
   watch: {
     activeSetLabel(setLabel) {
       if (setLabel) {
-        this.onSetSelected();
+        this.loadActiveSetStaples();
       }
-    }
+    },
+    activeFormat() {
+      this.loadActiveSetStaples();
+    },
   },
   created() {
+    const formatFromQuery = this.$route?.query?.format;
+    if (formatFromQuery && this.formats.some(({ value }) => value === formatFromQuery)) {
+      this.activeFormat = formatFromQuery;
+    }
+
     const setFromQuery = this.$route?.query?.set;
     if (!setFromQuery) {
       return;
@@ -144,10 +162,10 @@ export default {
     }
   },
   methods: {
-    async onSetSelected() {
+    async loadActiveSetStaples() {
       let cards = [];
       try {
-        cards = (await import(`~/output_data/sets/${this.activeSet.code}.json`)).default;
+        cards = (await import(`~/output_data/${this.activeFormat}/${this.activeSet.code}.json`)).default;
       } catch (e) {
         console.log(e);
       }
@@ -159,7 +177,7 @@ export default {
     share() {
       let url = window.location.origin;
       if (this.activeSet) {
-        url += `?set=${this.activeSet.code}`;
+        url += `?format=${this.activeFormat}&set=${this.activeSet.code}`;
       }
       if (navigator?.share) {
         navigator.share({

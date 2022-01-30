@@ -2,3 +2,4 @@
 alldata.json
 format.json
 __pycache__
+.scrapy
